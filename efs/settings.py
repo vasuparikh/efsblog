@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '^0f1zm#xj^j50qy7-+%wcq_8*2gv_)w3#a8y1x(3j$49b3guzr'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'mathfilters',
     'django.contrib.humanize',
     'portfolio',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [

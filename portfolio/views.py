@@ -3,6 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import CustomerSerializer
+
 from .forms import *
 from .models import *
 
@@ -187,7 +192,7 @@ def mutualfund_edit(request, pk):
 def mutualfund_delete(request, pk):
     mutualfund = get_object_or_404(Stock, pk=pk)
     mutualfund.delete()
-    mutualfunds = MutualFunds.objects.filter(acquired_date__lte=timezone.now())
+    mutualfunds = MutualFunds.objects.filter(beginning_date__lte=timezone.now())
     return render(request, 'portfolio/mutualfund_list.html', {'mutualfunds': mutualfunds})
 
 
@@ -200,7 +205,26 @@ def portfolio(request, pk):
     sum_recent_value = Investment.objects.filter(customer=pk).aggregate(Sum('recent_value'))
     sum_acquired_value = Investment.objects.filter(customer=pk).aggregate(Sum('acquired_value'))
 
+    # Initialize the value of the stocks
+    sum_current_stocks_value = 0
+    sum_of_initial_stock_value = 0
+
+    # Loop through each stock and add the value to the total
+    for stock in stocks:
+        sum_current_stocks_value += stock.current_stock_value()
+        sum_of_initial_stock_value += stock.initial_stock_value()
+
     return render(request, 'portfolio/portfolio.html', {'customers': customers, 'investments': investments,
                                                         'stocks': stocks,
                                                         'sum_recent_value': sum_recent_value,
-                                                        'sum_acquired_value': sum_acquired_value, })
+                                                        'sum_acquired_value': sum_acquired_value,
+                                                        'sum_current_stocks_value': sum_current_stocks_value,
+                                                        'sum_of_initial_stock_value': sum_of_initial_stock_value})
+
+
+class CustomerList(APIView):
+    def get(self, request):
+        customers_json = Customer.objects.all()
+        serializer = CustomerSerializer(customers_json, many=True)
+        return Response(serializer.data)
+
